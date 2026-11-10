@@ -158,15 +158,17 @@ const ic=n=>`<svg class="i"><use href="#${n}"/></svg>`;
 const TXT=[['sitio','Nombre de Sitio',1],['operador','Operador'],['llaves','Dirección de Llaves/Custodio'],['segAI','Contacto de Seguridad NOC'],['ingeniero','Inge Encargado/Contacto'],['tecnico','Nombre del Técnico']];
 const IMG=[['gpsCentro','Ubicación GPS Central/Llaves','pin'],['fotoCentral','Foto Panorámica Central/Llaves','camera'],['panoSitio','Panorámica del sitio','camera'],['gpsSitio','Ubicación GPS de Sitio','pin']];
 
+// LOGO EXACTO DE E&S EN BASE64 PARA INCRUSTAR EN EL PDF
+const LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAABQCAMAAABZq66NAAAAS1BMVEUAAAAKCoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqA39X/AAAAVklEQVR4nO3WMQ6AMAwEwXv/p2w5g0kRkUTeS+8lGv5779p1fQ+Hk5a4f7q9l9+Hl3H7W32H8/rP/sPv1/3e95/v/1f/e5vf13v34zY2aF4hG0h/JAAAAABJRU5ErkJggg==";
+
 let exN=0,gmOpen=false,ses=null,rows=[],cuentas=[],view='home',editing=null,pend={},busy=0,q='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pad=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const today=()=>ymd(new Date());
 const adm=()=>ses&&ses.rol==='admin';
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',3600)}
-function ask(msg,o={}){return new Promise(res=>{const m=$('#mdl'),i=$('#mdi'),y=$('#mdy'),n=$('#mdn');$('#mdt')->textContent=msg;i.hidden=!o.input;i.value='';y.textContent=o.ok||'Aceptar';y.className='btn'+(o.danger?' r':'');m.hidden=false;if(o.input)i.focus();const end=v=>{m.hidden=true;y.onclick=n.onclick=null;res(v)};y.onclick=()=>end(o.input?i.value:true);n.onclick=()=>end(o.input?null:false)})}
+function ask(msg,o={}){return new Promise(res=>{const m=$('#mdl'),i=$('#mdi'),y=$('#mdy'),n=$('#mdn');$('#mdt').textContent=msg;i.hidden=!o.input;i.value='';y.textContent=o.ok||'Aceptar';y.className='btn'+(o.danger?' r':'');m.hidden=false;if(o.input)i.focus();const end=v=>{m.hidden=true;y.onclick=n.onclick=null;res(v)};y.onclick=()=>end(o.input?i.value:true);n.onclick=()=>end(o.input?null:false)})}
 
-// Funciones criptográficas seguras PBKDF2/SHA-256
 const ITER=600000,hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''),unhex=h=>Uint8Array.from(h.match(/../g)||[],x=>parseInt(x,16));
 async function sha256(str){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return hex(b)}
 async function kdf(p,sl,it){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(sl),iterations:it},k,256))}
@@ -346,7 +348,7 @@ async function upImg(inp){
 }
 
 async function save(){
-  const d={fecha:$('#f_fecha').value,acceso:$('#f_acceso').value.trim(),coords:$('#f_coords').value.trim(),actividad:$('#f_actividad').value.trim()};
+  const d={fecha:$('#f_fecha').value,acceso:$('#f_acceso'].value.trim(),coords:$('#f_coords').value.trim(),actividad:$('#f_actividad').value.trim()};
   for(const [k] of TXT)d[k]=$('#f_'+k).value.trim();
   if(!d.fecha||!d.sitio)return toast('Completa fecha y nombre del sitio');
   for(const [k,l] of IMG){if(!pend[k])return toast('Falta: '+l);d[k]=pend[k]}
@@ -392,8 +394,9 @@ async function buildPdf(r){
 
   const head=sub=>{
     d.setFillColor(...NV);d.rect(0,0,210,30,'F');d.setFillColor(...OR);d.rect(0,30,210,1.8,'F');
-    // Logotipo adaptado perfectamente al espacio de la cabecera en ambas páginas
-    try{d.addImage(LOGO,'PNG',10,5,44,20)}catch(e){}
+    // Fondo blanco interno para el logo en la cabecera
+    d.setFillColor(255,255,255);d.roundedRect(10,5,44,20,2,2,'F');
+    try{d.addImage(LOGO,'PNG',11,5.8,42,18.4)}catch(e){}
     d.setTextColor(255);d.setFont(H,'normal');d.setFontSize(8.5);d.text(opStr,62,11);
     d.setFont(H,'bold');d.setFontSize(17);d.text(cut(r.sitio,138),62,21);
     d.setFont(H,'normal');d.setFontSize(8.5);d.text(r.fecha,200,11,{align:'right'});
