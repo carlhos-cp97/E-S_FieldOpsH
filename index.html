@@ -178,18 +178,45 @@ function genPw(){let s='';for(const x of crypto.getRandomValues(new Uint8Array(1
 const okPw=p=>p.length>=10&&/[a-zA-Z]/.test(p)&&/\d/.test(p);
 
 // Inicialización de la Base de Datos Local
+// Inicialización de la Base de Datos Local y precarga de usuarios
 async function initDB(){
   let d=JSON.parse(localStorage.getItem('fo_db')||'{"cuentas":{},"visitas":{},"perfiles":{}}');
+  
+  // 1. Administrador principal
   const adminEmail='wcarloshe@gmail.com';
   const adminPass='1234567890ch';
-  const ek=await sha256(adminEmail);
+  const ekAdmin=await sha256(adminEmail);
   
-  if(!d.cuentas[ek]){
+  if(!d.cuentas[ekAdmin]){
     const k=await mkCred(adminPass);
-    d.cuentas[ek]={nombre:'Carlos Hernán',rol:'admin',estado:'activo',salt:k.salt,iter:k.iter,hash:k.hash,createdAt:Date.now()};
-    d.perfiles[ek]={email:adminEmail,nombre:'Carlos Hernán'};
-    localStorage.setItem('fo_db',JSON.stringify(d));
+    d.cuentas[ekAdmin]={nombre:'Carlos Hernán',rol:'admin',estado:'activo',salt:k.salt,iter:k.iter,hash:k.hash,createdAt:Date.now()};
+    d.perfiles[ekAdmin]={email:adminEmail,nombre:'Carlos Hernán'};
   }
+
+  // 2. Edisson (Técnico)
+  const edissonEmail='edisson@gmail.com';
+  const edissonPass='1234567890ed';
+  const ekEdisson=await sha256(edissonEmail);
+  
+  if(!d.cuentas[ekEdisson]){
+    const kEd=await mkCred(edissonPass);
+    d.cuentas[ekEdisson]={nombre:'Edisson',rol:'tecnico',estado:'activo',salt:kEd.salt,iter:kEd.iter,hash:kEd.hash,createdAt:Date.now()};
+    d.perfiles[ekEdisson]={email:edissonEmail,nombre:'Edisson'};
+  }
+
+  // 3. Andrea (Técnico)
+  const andreaEmail='andrea@gmail.com';
+  const andreaPass='1234567890an';
+  const ekAndrea=await sha256(andreaEmail);
+  
+  if(!d.cuentas[ekAndrea]){
+    const kAn=await mkCred(andreaPass);
+    d.cuentas[ekAndrea]={nombre:'Andrea',rol:'tecnico',estado:'activo',salt:kAn.salt,iter:kAn.iter,hash:kAn.hash,createdAt:Date.now()};
+    d.perfiles[ekAndrea]={email:andreaEmail,nombre:'Andrea'};
+  }
+
+  // Guardar cambios en el almacenamiento local
+  localStorage.setItem('fo_db',JSON.stringify(d));
 }
 
 function getDB(){return JSON.parse(localStorage.getItem('fo_db')||'{"cuentas":{},"visitas":{},"perfiles":{}}')}
