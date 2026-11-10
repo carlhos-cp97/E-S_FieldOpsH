@@ -169,7 +169,7 @@ const adm=()=>ses&&ses.rol==='admin';
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',3600)}
 function ask(msg,o={}){return new Promise(res=>{const m=$('#mdl'),i=$('#mdi'),y=$('#mdy'),n=$('#mdn');$('#mdt').textContent=msg;i.hidden=!o.input;i.value='';y.textContent=o.ok||'Aceptar';y.className='btn'+(o.danger?' r':'');m.hidden=false;if(o.input)i.focus();const end=v=>{m.hidden=true;y.onclick=n.onclick=null;res(v)};y.onclick=()=>end(o.input?i.value:true);n.onclick=()=>end(o.input?null:false)})}
 
-const ITER=600000,hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''),unhex=h=>Uint8Array.from(h.match(/../g)||[],x=>parseInt(x,16));
+const ITER=60000,hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''),unhex=h=>Uint8Array.from(h.match(/../g)||[],x=>parseInt(x,16));
 async function sha256(str){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return hex(b)}
 async function kdf(p,sl,it){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(sl),iterations:it},k,256))}
 const same=(a,b)=>{a=String(a);b=String(b);if(a.length!==b.length)return false;let r=0;for(let i=0;i<a.length;i++)r|=a.charCodeAt(i)^b.charCodeAt(i);return r===0};
@@ -394,7 +394,6 @@ async function buildPdf(r){
 
   const head=sub=>{
     d.setFillColor(...NV);d.rect(0,0,210,30,'F');d.setFillColor(...OR);d.rect(0,30,210,1.8,'F');
-    // Fondo blanco interno para el logo en la cabecera
     d.setFillColor(255,255,255);d.roundedRect(10,5,44,20,2,2,'F');
     try{d.addImage(LOGO,'PNG',11,5.8,42,18.4)}catch(e){}
     d.setTextColor(255);d.setFont(H,'normal');d.setFontSize(8.5);d.text(opStr,62,11);
@@ -565,9 +564,13 @@ const cell=v=>{v=String(v==null?'':Array.isArray(v)?v.join(' '):v);if(/^[=+\-@\t
 function csvText(){const cols=['fecha',...TXT.map(t=>t[0]),'coords','acceso','actividad'];return '\ufeff'+[cols.join(',')].concat(rows.map(r=>cols.map(c=>cell(r[c])).join(','))).join('\n')}
 function csv(){const blob=new Blob([csvText()],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='visitas_'+today()+'.csv';a.click()}
 
-// Arranque principal
+// Arranque principal asegurado
 (async()=>{
-  try { await initDB(); } catch(e) {}
+  try {
+    await initDB();
+  } catch(e) {
+    console.error("Init error:", e);
+  }
   let savedSes=null;
   try{savedSes=JSON.parse(localStorage.getItem('fo_ses')||'null')}catch(e){}
   if(savedSes&&savedSes.user){
