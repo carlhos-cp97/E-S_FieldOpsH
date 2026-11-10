@@ -111,7 +111,6 @@ a.btn{text-decoration:none}
 .brand{background:radial-gradient(circle at 85% 8%,#2f66bd 0,transparent 42%),radial-gradient(circle at 10% 95%,#e4571b55 0,transparent 40%),linear-gradient(150deg,var(--navy) 55%,#1d4177)}
 .acc{background:radial-gradient(circle at 20% 15%,var(--soft),transparent 55%)}
 .box{animation:rise .6s ease both;box-shadow:0 14px 44px #12294b2e;border-top:4px solid var(--or)}
-.tele{width:100%;max-width:520px;position:relative;z-index:1;margin-top:4px;filter:drop-shadow(0 6px 18px #0006)}
 .brand .kick{letter-spacing:.14em;text-transform:uppercase;font-size:12px;opacity:.85;font-weight:700}
 .brand .sub{font-size:18px;font-weight:700;color:#ffd2b8;margin-top:-10px}
 .brand p.slg{font-size:18px;font-weight:800;color:#fff;border-left:4px solid var(--or);padding-left:12px;max-width:34ch}
@@ -151,6 +150,7 @@ a.btn{text-decoration:none}
 <div id="mdl" hidden><div class="card"><p id="mdt" style="margin:0 0 12px;font-weight:600"></p><input type="password" id="mdi" hidden style="margin-bottom:12px"><div class="row" style="justify-content:flex-end"><button class="btn s" id="mdn">Cancelar</button><button class="btn" id="mdy">Aceptar</button></div></div></div>
 <div id="toast"></div>
 
+<!-- Librería jsPDF necesaria para generar el PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const $=s=>document.querySelector(s);
@@ -177,46 +177,48 @@ const PA='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
 function genPw(){let s='';for(const x of crypto.getRandomValues(new Uint8Array(14)))s+=PA[x%PA.length];return/\d/.test(s)&&/[a-z]/.test(s)&&/[A-Z]/.test(s)?s:genPw()}
 const okPw=p=>p.length>=10&&/[a-zA-Z]/.test(p)&&/\d/.test(p);
 
-// Inicialización de la Base de Datos Local
-// Inicialización de la Base de Datos Local y precarga de usuarios
+// Inicialización segura con try/catch para evitar que se quede congelado
 async function initDB(){
-  let d=JSON.parse(localStorage.getItem('fo_db')||'{"cuentas":{},"visitas":{},"perfiles":{}}');
-  
-  // 1. Administrador principal
-  const adminEmail='wcarloshe@gmail.com';
-  const adminPass='1234567890ch';
-  const ekAdmin=await sha256(adminEmail);
-  
-  if(!d.cuentas[ekAdmin]){
-    const k=await mkCred(adminPass);
-    d.cuentas[ekAdmin]={nombre:'Carlos Hernán',rol:'admin',estado:'activo',salt:k.salt,iter:k.iter,hash:k.hash,createdAt:Date.now()};
-    d.perfiles[ekAdmin]={email:adminEmail,nombre:'Carlos Hernán'};
-  }
+  try {
+    let d=JSON.parse(localStorage.getItem('fo_db')||'{"cuentas":{},"visitas":{},"perfiles":{}}');
+    
+    // 1. Administrador principal
+    const adminEmail='wcarloshe@gmail.com';
+    const adminPass='1234567890ch';
+    const ekAdmin=await sha256(adminEmail);
+    
+    if(!d.cuentas[ekAdmin]){
+      const k=await mkCred(adminPass);
+      d.cuentas[ekAdmin]={nombre:'Carlos Hernán',rol:'admin',estado:'activo',salt:k.salt,iter:k.iter,hash:k.hash,createdAt:Date.now()};
+      d.perfiles[ekAdmin]={email:adminEmail,nombre:'Carlos Hernán'};
+    }
 
-  // 2. Edisson (Técnico)
-  const edissonEmail='edisson@gmail.com';
-  const edissonPass='1234567890ed';
-  const ekEdisson=await sha256(edissonEmail);
-  
-  if(!d.cuentas[ekEdisson]){
-    const kEd=await mkCred(edissonPass);
-    d.cuentas[ekEdisson]={nombre:'Edisson',rol:'tecnico',estado:'activo',salt:kEd.salt,iter:kEd.iter,hash:kEd.hash,createdAt:Date.now()};
-    d.perfiles[ekEdisson]={email:edissonEmail,nombre:'Edisson'};
-  }
+    // 2. Edisson (Técnico)
+    const edissonEmail='edisson@gmail.com';
+    const edissonPass='1234567890ed';
+    const ekEdisson=await sha256(edissonEmail);
+    
+    if(!d.cuentas[ekEdisson]){
+      const kEd=await mkCred(edissonPass);
+      d.cuentas[ekEdisson]={nombre:'Edisson',rol:'tecnico',estado:'activo',salt:kEd.salt,iter:kEd.iter,hash:kEd.hash,createdAt:Date.now()};
+      d.perfiles[ekEdisson]={email:edissonEmail,nombre:'Edisson'};
+    }
 
-  // 3. Andrea (Técnico)
-  const andreaEmail='andrea@gmail.com';
-  const andreaPass='1234567890an';
-  const ekAndrea=await sha256(andreaEmail);
-  
-  if(!d.cuentas[ekAndrea]){
-    const kAn=await mkCred(andreaPass);
-    d.cuentas[ekAndrea]={nombre:'Andrea',rol:'tecnico',estado:'activo',salt:kAn.salt,iter:kAn.iter,hash:kAn.hash,createdAt:Date.now()};
-    d.perfiles[ekAndrea]={email:andreaEmail,nombre:'Andrea'};
-  }
+    // 3. Andrea (Técnico)
+    const andreaEmail='andrea@gmail.com';
+    const andreaPass='1234567890an';
+    const ekAndrea=await sha256(andreaEmail);
+    
+    if(!d.cuentas[ekAndrea]){
+      const kAn=await mkCred(andreaPass);
+      d.cuentas[ekAndrea]={nombre:'Andrea',rol:'tecnico',estado:'activo',salt:kAn.salt,iter:kAn.iter,hash:kAn.hash,createdAt:Date.now()};
+      d.perfiles[ekAndrea]={email:andreaEmail,nombre:'Andrea'};
+    }
 
-  // Guardar cambios en el almacenamiento local
-  localStorage.setItem('fo_db',JSON.stringify(d));
+    localStorage.setItem('fo_db',JSON.stringify(d));
+  } catch (err) {
+    console.error("Error en initDB:", err);
+  }
 }
 
 function getDB(){return JSON.parse(localStorage.getItem('fo_db')||'{"cuentas":{},"visitas":{},"perfiles":{}}')}
@@ -381,13 +383,135 @@ async function save(){
   go('list');
 }
 
+// ---------------- LÓGICA DE GENERACIÓN Y DESCARGA DE PDF (DISEÑO ORIGINAL) ----------------
+const mapUrl=c=>'https://www.google.com/maps?q='+encodeURIComponent(String(c).replace(/\s+/g,''));
+const fts=t=>{const d=new Date(+t);return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes())};
+function loadImg(src){
+  return new Promise(ok=>{
+    if(!src||src==='NA')return ok(null);
+    const im=new Image();
+    im.onload=()=>{
+      const c=document.createElement('canvas');c.width=im.width;c.height=im.height;
+      c.getContext('2d').drawImage(im,0,0);
+      ok({d:c.toDataURL('image/jpeg',.85),w:im.width,h:im.height})
+    };
+    im.onerror=()=>ok(null);
+    im.src=src;
+  });
+}
+
+async function buildPdf(r){
+  if(!window.jspdf){toast('El generador de PDF no cargó. Revisa tu conexión.');return null}
+  const d=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),NV=[18,41,75],OR=[228,87,27],GR=[241,245,250],H='helvetica',CH=6.5;
+  const cut=(s,w)=>{s=String(s||'-').replace(/\s+/g,' ');if(d.getTextWidth(s)<=w)return s;while(s.length>1&&d.getTextWidth(s+'...')>w)s=s.slice(0,-1);return s+'...'};
+  const head=sub=>{
+    d.setFillColor(...NV);d.rect(0,0,210,30,'F');d.setFillColor(...OR);d.rect(0,30,210,1.8,'F');
+    d.setFillColor(255,255,255);d.roundedRect(10,5,44,20,2.5,2.5,'F');
+    try{d.addImage(LOGO,'PNG',12,6.3,40,18.5)}catch(e){}
+    d.setTextColor(255);d.setFont(H,'normal');d.setFontSize(8.5);d.text(sub,62,11);
+    d.setFont(H,'bold');d.setFontSize(17);d.text(cut(r.sitio,138),62,21);
+    d.setFont(H,'normal');d.setFontSize(8.5);d.text(r.fecha,200,11,{align:'right'});
+  };
+  const foot=p=>{
+    d.setFillColor(...NV);d.rect(0,287,210,10,'F');d.setFont(H,'normal');d.setFontSize(8);d.setTextColor(255);
+    d.text('E&S Engineering & Services  |  FieldOps',10,293);
+    d.text('Página '+p+' de 2   |   '+new Date().toLocaleString('es-CO'),200,293,{align:'right'});
+  };
+  const sec=(y,t)=>{
+    d.setFillColor(...OR);d.rect(10,y,3,5,'F');d.setFont(H,'bold');d.setFontSize(11);d.setTextColor(...NV);
+    d.text(t,16,y+4);d.setDrawColor(...OR);d.setLineWidth(.4);d.line(10,y+6,200,y+6);
+  };
+  const photo=async(x,y,W,BH,l,v)=>{
+    d.setFillColor(...NV);d.rect(x,y,W,CH,'F');d.setFillColor(...OR);d.rect(x,y,2,CH,'F');
+    d.setFont(H,'bold');d.setFontSize(8.5);d.setTextColor(255);d.text(cut(l,W-8),x+5,y+4.5);
+    if(v==='NA'){
+      d.setFillColor(255,243,236);d.rect(x,y+CH,W,BH,'F');d.setDrawColor(...OR);d.setLineWidth(.6);
+      d.setLineDashPattern([2.5,1.8],0);d.rect(x+1.5,y+CH+1.5,W-3,BH-3,'S');d.setLineDashPattern([],0);
+      d.setFont(H,'bold');d.setFontSize(40);d.setTextColor(...OR);d.text('N/A',x+W/2,y+CH+BH/2+3,{align:'center'});
+      d.setFontSize(8);d.setTextColor(...NV);d.text('NO APLICA PARA ESTE SITIO',x+W/2,y+CH+BH/2+12,{align:'center'});return;
+    }
+    d.setFillColor(...GR);d.rect(x,y+CH,W,BH,'F');
+    const im=v?await loadImg(v):null;
+    if(im){
+      const sc=Math.min((W-2)/im.w,(BH-2)/im.h),w=im.w*sc,h=im.h*sc;
+      d.addImage(im.d,'JPEG',x+(W-w)/2,y+CH+(BH-h)/2,w,h);
+    }else{
+      d.setFont(H,'normal');d.setFontSize(9);d.setTextColor(120);d.text('(sin imagen)',x+W/2,y+CH+BH/2,{align:'center'});
+    }
+    d.setDrawColor(207,220,236);d.setLineWidth(.3);d.rect(x,y+CH,W,BH,'S');
+  };
+
+  head('REPORTE DE VISITA TÉCNICA');
+  const co=r.coords;
+  const F=[
+    ['Fecha de registro',r.fecha],
+    ['Nombre del sitio',r.sitio],
+    ['Operador',r.operador],
+    ['Técnico',r.tecnico],
+    ['Dirección de llaves/custodio',r.llaves],
+    ['Contacto de seguridad NOC',r.segAI],
+    ['Inge encargado/contacto',r.ingeniero],
+    ['Coordenadas GPS',r.coords||'']
+  ];
+  F.forEach(([l,v],i)=>{
+    const x=10+(i%2)*97,y=38+Math.floor(i/2)*17;
+    d.setFillColor(...GR);d.roundedRect(x,y,93,14.5,2,2,'F');d.setFillColor(...OR);d.rect(x,y+1.8,1.2,10.9,'F');
+    d.setFont(H,'normal');d.setFontSize(7.5);d.setTextColor(95,113,134);d.text(l,x+4,y+4.8);
+    d.setFont(H,'bold');d.setFontSize(10);d.setTextColor(18,38,58);d.text(cut(v,86),x+4,y+10.8);
+  });
+  if(co){d.setFont(H,'bold');d.setFontSize(7.5);d.setTextColor(...OR);d.textWithLink('Ver en Maps',107+89,38+3*17+4.8,{url:mapUrl(co),align:'right'})}
+  d.setFillColor(...GR);d.roundedRect(10,106,190,22,2,2,'F');d.setFillColor(...OR);d.rect(10,107.8,1.2,18.4,'F');
+  d.setFont(H,'normal');d.setFontSize(7.5);d.setTextColor(95,113,134);d.text('Nota de tipo de acceso',14,110.8);
+  d.setFontSize(9);d.setTextColor(18,38,58);
+  let L=d.splitTextToSize(String(r.acceso||'Sin nota'),182);if(L.length>3){L=L.slice(0,3);L[2]=cut(L[2]+' ...',182)}
+  L.forEach((t,i)=>d.text(t,14,116.2+i*4.2));
+  sec(134,'REGISTRO FOTOGRÁFICO DEL SITIO');
+  let i=0;for(const [k,l] of IMG){await photo(10+(i%2)*97,144+Math.floor(i/2)*67.5,93,56,l,r[k]);i++}
+  foot(1);
+
+  d.addPage();head('ACTIVIDAD A REALIZAR Y EVIDENCIAS');
+  sec(38,'ACTIVIDAD A REALIZAR');
+  d.setFont(H,'normal');d.setFontSize(9.5);
+  let A=d.splitTextToSize(String(r.actividad||'Sin descripción registrada'),182);if(A.length>8){A=A.slice(0,8);A[7]=cut(A[7]+' ...',182)}
+  const ah=8+A.length*4.6;
+  d.setFillColor(...GR);d.roundedRect(10,47,190,ah,2,2,'F');d.setFillColor(...OR);d.rect(10,48.8,1.2,ah-3.6,'F');
+  d.setTextColor(18,38,58);A.forEach((t,j)=>d.text(t,14,53.2+j*4.6));
+  const ex=(r.extras||[]).filter(v=>v&&v!=='NA'),n=ex.length;
+  let y=47+ah+7;sec(y,'FOTOS DE ACTIVIDAD');y+=10;
+  const BA=n?54:80;
+  await photo(10,y,93,BA,'Fotos de Actividad 1',r.act1);await photo(107,y,93,BA,'Fotos de Actividad 2',r.act2);
+  if(n){
+    y+=CH+BA+8;sec(y,'FOTOS ADICIONALES');y+=10;
+    const rows=Math.ceil(n/2),BE=Math.min(56,Math.floor((283-y-rows*(CH+4))/rows));
+    for(let j=0;j<n;j++)await photo(10+(j%2)*97,y+Math.floor(j/2)*(CH+BE+4),93,BE,'Foto adicional '+(j+1),ex[j]);
+  }
+  foot(2);return d;
+}
+
+async function downloadPdf(r, btn){
+  btn.disabled=true;
+  const oldText=btn.textContent;
+  btn.textContent='Generando PDF…';
+  try{
+    const pdfDoc=await buildPdf(r);
+    if(pdfDoc){
+      pdfDoc.save(r.fecha.replace(/-/g,'')+'_'+(r.sitio||'sitio').replace(/[^\w\-]+/g,'_')+'.pdf');
+      toast('PDF descargado con éxito');
+    }
+  }catch(e){
+    toast('Error al generar PDF: '+(e.message||'error'));
+  }
+  btn.disabled=false;
+  btn.textContent=oldText;
+}
+
 function listH(){
   let l=mine();if(q){const t=q.toLowerCase();l=l.filter(r=>[r.sitio,r.operador,r.tecnico,r.fecha].join(' ').toLowerCase().includes(t))}
   let h=`<div class="card row"><input type="text" id="q" placeholder="Buscar sitio, operador, técnico o fecha" value="${esc(q)}" style="flex:1;min-width:200px">${adm()?'<button class="btn s" id="csv">Exportar CSV</button>':''}</div>`;
   if(!l.length)h+='<div class="empty">No hay reportes para mostrar.</div>';
   for(const r of l){
     h+=`<div class="card rec"><div><h3>${esc(r.sitio)}</h3><p>${esc(r.fecha)} · ${esc(r.operador||'Sin operador')} · Técnico: ${esc(r.tecnico||'-')}</p><p>${esc(r.acceso||'')}</p><p><b>Actividad:</b> ${esc(r.actividad||'')}</p><div class="th">${[...IMG.map(x=>r[x[0]]),r.act1,r.act2,...(r.extras||[])].filter(v=>v&&v!=='NA').map(v=>`<img src="${v}" alt="">`).join('')}</div></div>`;
-    h+=`<div class="acts"><button class="btn s" data-a="ed" data-id="${r.id}">Editar</button><button class="btn d" data-a="del" data-id="${r.id}">Eliminar</button></div>`;
+    h+=`<div class="acts"><button class="btn" data-a="pdf" data-id="${r.id}">Descargar PDF</button><button class="btn s" data-a="ed" data-id="${r.id}">Editar</button><button class="btn d" data-a="del" data-id="${r.id}">Eliminar</button></div>`;
     h+='</div>';
   }
   return h;
@@ -426,8 +550,10 @@ function usersH(){
 }
 
 async function act(a,id,btn){
-  if(a==='ed'){const r=rows.find(x=>x.id==id);if(r)go('new',r)}
-  if(a==='del'){
+  const r=rows.find(x=>x.id==id);
+  if(a==='pdf'&&r)await downloadPdf(r, btn);
+  if(a==='ed'&&r)go('new',r);
+  if(a==='del'&&r){
     if(!await ask('¿Eliminar reporte?',{ok:'Eliminar',danger:1}))return;
     const dbData=getDB();
     Object.keys(dbData.visitas).forEach(uid=>{dbData.visitas[uid]=(dbData.visitas[uid]||[]).filter(x=>x.id!==id)});
@@ -447,14 +573,20 @@ function setRol(id,rol){
 }
 
 const cell=v=>{v=String(v==null?'':Array.isArray(v)?v.join(' '):v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
-function csvText(){const cols=['fecha',...TXT.map(t=>t[0]),'coords','acceso','actividad'];return '\ufeff'+[cols.join(',')].concat(rows.map(r=>cols.map(c=>cell(r[c]))).join(',')).join('\n')}
+function csvText(){const cols=['fecha',...TXT.map(t=>t[0]),'coords','acceso','actividad'];return '\ufeff'+[cols.join(',')].concat(rows.map(r=>cols.map(c=>cell(r[c])).join(','))).join('\n')}
 function csv(){const blob=new Blob([csvText()],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='visitas_'+today()+'.csv';a.click()}
 
-// Arranque principal sincronizado
+// Arranque principal con control de errores para garantizar carga del login
 (async()=>{
-  await initDB();
+  try {
+    await initDB();
+  } catch(e) {
+    console.error("Error al iniciar DB:", e);
+  }
+  
   let savedSes=null;
   try{savedSes=JSON.parse(localStorage.getItem('fo_ses')||'null')}catch(e){}
+  
   if(savedSes&&savedSes.user){
     ses=savedSes;
     enter();
