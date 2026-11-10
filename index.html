@@ -153,6 +153,7 @@ a.btn{text-decoration:none}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
+const LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAToAAACRCAMAAABkMIT3AAAASFBMVEX//////v////r9///+//v6//7z//3+/f7//ff/+PP5+fnw9/jj3dmhko3WVBqAXE3dTxbSTRgWKUEIJUIDJ0cAJEgBJEQCIEHHkMpWAAAmcUlEQVR42u1diXbjOIzUacokZcVHrP//00UVQOq0rXT3vrc7L8xMOnFsiSziBggVxe/4Hb/jd/yO3/E7fsfv+B2/43f8jt/x/3ZUVSOjxlj9BS/Jn4pKfm52/r66TKWfOD7sk+XLa/JNpY3ZjdLAvDDBYv73lxf7t6h1NvwJo22qYv5V40XPNzRNK2N99zzjSq/ENx0fdYP1N65xMnAthVMvhr+0p7bF37zH97bhq113TtM+c3I+4K+OGC5HY2PaLde23nv5FzQh/7ZOXmz5n9y7wg34fr3gIei8x1qaajEa3Kc7AJ0u6PxT6Ox2XDigc3PogFKryBE870+tl2XprTgw7xB8R2CdvL6BrpqxFDASpIT6BEDvikYgl2UXfKXkLXjbDJ1rXlNyiRtWXHfH9+Zt0lHIS0CEW1F/gk5X+wdDbwb0jIerOaQgtxBONoD46RT4A77xxQxd9YLqJoYtC9sHvNYEGV5eE6puXFFyFVWazVvoCrcaO9Apr3BsZd0MuipT8PGRUEvDTUueTao9zUY7YWjf5P9A2uw+QCfDICsaI+SyyF+N/B6qJs1IoXvDsGW5hG4txvMfSn1nufn8fIqQRT8bQstNbZM1sa9bqvcvE3JBh1da5FwoYrwKGpWIB6ArAI0nNdSlfHn+XNbOC/HJclc76Y5Bp7u4wk7/AE5176GDGJHxQ8qrksxL0FVJrerrboLuvDs6l5TTEehcIej7JGixH5PYVkrmDE334CB314+l00zN01Ymlq0x8c7p4x96+rV6w2u1tW32F0Qv+b4582f63uS0x0+yV/P+/0v4G536/s95Z/A1xO04p0qN1x4Vp6+pW25e8z140b/J41K6tM3O52eY+zW281vS2p+70lG2l5l2r7uT/i12e9bNl4Pj0aR+06PjXp6M6Z7n7mR+l8P0qW1sK33q9p8j/6lXn0i1x6g417e/p/w07T/+c9pW1lHkK7k0d4+6j/T6N++y31z8w8m4Z+/4P/j1k/5P/l4u8V23y5s67e4z80f7690k0i14o2r9m/7+f9j39j+1/i32e1+1y5s+3Wz8+/33n3n/r32X0l4p/0s7a21390X7//+d5a7y71l6r9q225a62p5a7v3767/9p793836z7j4+X6v9a4l0323t8360/b77f98i3p8w2y+2z7s5/+/5/1n0l/K/5a0h9/v3/9/0l4X7W/8v5l33r9l281e7u5h23j/L3kXvL/s7z//d9v/x8/42//l/i33e/5r+92//1/x38/1+h//7X8H8H87f7d/y//b8T3x3n3v0z5e97/z/L/tP9v7V3t1s5+t2v/+z/L3l/i/2X3f8N8X+i3n//6/r7z/x73100j0//r/6p2126+06180k3x77r70X0//r/4x6//+z/6V/7+8f7m7//b+h//v6616035h8iX9x0Xf416t8u8/r0S0x0g9+r2b7L78k9p3/yv97+X90e71y0y7i23p32k4273z/y70m8t7z/XvJ/569w/+d//5f76/7/d3p///3y+2//b/3t4X6t8//d6/x5k7z+b1/170///e83l/t3t/z/7r0i37y156/6b+231/x8n/1///21/+/r7b+b1d7/m812r7e/+Z+9/t3/f28n7d02l5b61//7z/91m//b2t9//l6v3t9b9j/7t30261///n616r///2s//b/140j0x4/d9sX/5+/k=";
 const $=s=>document.querySelector(s);
 const ic=n=>`<svg class="i"><use href="#${n}"/></svg>`;
 const TXT=[['sitio','Nombre de Sitio',1],['operador','Operador'],['llaves','Dirección de Llaves/Custodio'],['segAI','Contacto de Seguridad NOC'],['ingeniero','Inge Encargado/Contacto'],['tecnico','Nombre del Técnico']];
@@ -166,7 +167,7 @@ const adm=()=>ses&&ses.rol==='admin';
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',3600)}
 function ask(msg,o={}){return new Promise(res=>{const m=$('#mdl'),i=$('#mdi'),y=$('#mdy'),n=$('#mdn');$('#mdt').textContent=msg;i.hidden=!o.input;i.value='';y.textContent=o.ok||'Aceptar';y.className='btn'+(o.danger?' r':'');m.hidden=false;if(o.input)i.focus();const end=v=>{m.hidden=true;y.onclick=n.onclick=null;res(v)};y.onclick=()=>end(o.input?i.value:true);n.onclick=()=>end(o.input?null:false)})}
 
-// Funciones criptográficas seguras PBKDF2/SHA-256
+// Criptografía PBKDF2 / SHA-256
 const ITER=600000,hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''),unhex=h=>Uint8Array.from(h.match(/../g)||[],x=>parseInt(x,16));
 async function sha256(str){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return hex(b)}
 async function kdf(p,sl,it){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(sl),iterations:it},k,256))}
@@ -177,8 +178,7 @@ const PA='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
 function genPw(){let s='';for(const x of crypto.getRandomValues(new Uint8Array(14)))s+=PA[x%PA.length];return/\d/.test(s)&&/[a-z]/.test(s)&&/[A-Z]/.test(s)?s:genPw()}
 const okPw=p=>p.length>=10&&/[a-zA-Z]/.test(p)&&/\d/.test(p);
 
-// Inicialización de la Base de Datos Local
-// Inicialización de la Base de Datos Local y precarga de usuarios
+// Inicialización de la Base de Datos Local con usuarios precargados
 async function initDB(){
   let d=JSON.parse(localStorage.getItem('fo_db')||'{"cuentas":{},"visitas":{},"perfiles":{}}');
   
@@ -186,7 +186,6 @@ async function initDB(){
   const adminEmail='wcarloshe@gmail.com';
   const adminPass='1234567890ch';
   const ekAdmin=await sha256(adminEmail);
-  
   if(!d.cuentas[ekAdmin]){
     const k=await mkCred(adminPass);
     d.cuentas[ekAdmin]={nombre:'Carlos Hernán',rol:'admin',estado:'activo',salt:k.salt,iter:k.iter,hash:k.hash,createdAt:Date.now()};
@@ -197,7 +196,6 @@ async function initDB(){
   const edissonEmail='edisson@gmail.com';
   const edissonPass='1234567890ed';
   const ekEdisson=await sha256(edissonEmail);
-  
   if(!d.cuentas[ekEdisson]){
     const kEd=await mkCred(edissonPass);
     d.cuentas[ekEdisson]={nombre:'Edisson',rol:'tecnico',estado:'activo',salt:kEd.salt,iter:kEd.iter,hash:kEd.hash,createdAt:Date.now()};
@@ -208,14 +206,12 @@ async function initDB(){
   const andreaEmail='andrea@gmail.com';
   const andreaPass='1234567890an';
   const ekAndrea=await sha256(andreaEmail);
-  
   if(!d.cuentas[ekAndrea]){
     const kAn=await mkCred(andreaPass);
     d.cuentas[ekAndrea]={nombre:'Andrea',rol:'tecnico',estado:'activo',salt:kAn.salt,iter:kAn.iter,hash:kAn.hash,createdAt:Date.now()};
     d.perfiles[ekAndrea]={email:andreaEmail,nombre:'Andrea'};
   }
 
-  // Guardar cambios en el almacenamiento local
   localStorage.setItem('fo_db',JSON.stringify(d));
 }
 
@@ -381,13 +377,138 @@ async function save(){
   go('list');
 }
 
+// ---------------- LÓGICA COMPLETA DE GENERACIÓN DE PDF (DISEÑO ORIGINAL) ----------------
+const mapUrl=c=>'https://www.google.com/maps?q='+encodeURIComponent(String(c).replace(/\s+/g,''));
+const fts=t=>{const d=new Date(+t);return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes())};
+function loadImg(src){
+  return new Promise(ok=>{
+    if(!src||src==='NA')return ok(null);
+    const im=new Image();
+    im.onload=()=>{
+      const c=document.createElement('canvas');c.width=im.width;c.height=im.height;
+      c.getContext('2d').drawImage(im,0,0);
+      ok({d:c.toDataURL('image/jpeg',.85),w:im.width,h:im.height})
+    };
+    im.onerror=()=>ok(null);
+    im.src=src;
+  });
+}
+
+async function buildPdf(r){
+  if(!window.jspdf){toast('El generador de PDF no cargó. Revisa tu conexión.');return null}
+  const d=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),NV=[18,41,75],OR=[228,87,27],GR=[241,245,250],H='helvetica',CH=6.5;
+  const cut=(s,w)=>{s=String(s||'-').replace(/\s+/g,' ');if(d.getTextWidth(s)<=w)return s;while(s.length>1&&d.getTextWidth(s+'...')>w)s=s.slice(0,-1);return s+'...'};
+  const head=sub=>{
+    d.setFillColor(...NV);d.rect(0,0,210,30,'F');d.setFillColor(...OR);d.rect(0,30,210,1.8,'F');
+    d.setFillColor(255,255,255);d.roundedRect(10,5,44,20,2.5,2.5,'F');
+    try{d.addImage(LOGO,'PNG',12,6.3,40,18.5)}catch(e){}
+    d.setTextColor(255);d.setFont(H,'normal');d.setFontSize(8.5);d.text(sub,62,11);
+    d.setFont(H,'bold');d.setFontSize(17);d.text(cut(r.sitio,138),62,21);
+    d.setFont(H,'normal');d.setFontSize(8.5);d.text(r.fecha,200,11,{align:'right'});
+  };
+  const foot=p=>{
+    d.setFillColor(...NV);d.rect(0,287,210,10,'F');d.setFont(H,'normal');d.setFontSize(8);d.setTextColor(255);
+    d.text('E&S Engineering & Services  |  FieldOps',10,293);
+    d.text('Página '+p+' de 2   |   '+new Date().toLocaleString('es-CO'),200,293,{align:'right'});
+  };
+  const sec=(y,t)=>{
+    d.setFillColor(...OR);d.rect(10,y,3,5,'F');d.setFont(H,'bold');d.setFontSize(11);d.setTextColor(...NV);
+    d.text(t,16,y+4);d.setDrawColor(...OR);d.setLineWidth(.4);d.line(10,y+6,200,y+6);
+  };
+  const photo=async(x,y,W,BH,l,v)=>{
+    d.setFillColor(...NV);d.rect(x,y,W,CH,'F');d.setFillColor(...OR);d.rect(x,y,2,CH,'F');
+    d.setFont(H,'bold');d.setFontSize(8.5);d.setTextColor(255);d.text(cut(l,W-8),x+5,y+4.5);
+    if(v==='NA'){
+      d.setFillColor(255,243,236);d.rect(x,y+CH,W,BH,'F');d.setDrawColor(...OR);d.setLineWidth(.6);
+      d.setLineDashPattern([2.5,1.8],0);d.rect(x+1.5,y+CH+1.5,W-3,BH-3,'S');d.setLineDashPattern([],0);
+      d.setFont(H,'bold');d.setFontSize(40);d.setTextColor(...OR);d.text('N/A',x+W/2,y+CH+BH/2+3,{align:'center'});
+      d.setFontSize(8);d.setTextColor(...NV);d.text('NO APLICA PARA ESTE SITIO',x+W/2,y+CH+BH/2+12,{align:'center'});return;
+    }
+    d.setFillColor(...GR);d.rect(x,y+CH,W,BH,'F');
+    const im=v?await loadImg(v):null;
+    if(im){
+      const sc=Math.min((W-2)/im.w,(BH-2)/im.h),w=im.w*sc,h=im.h*sc;
+      d.addImage(im.d,'JPEG',x+(W-w)/2,y+CH+(BH-h)/2,w,h);
+    }else{
+      d.setFont(H,'normal');d.setFontSize(9);d.setTextColor(120);d.text('(sin imagen)',x+W/2,y+CH+BH/2,{align:'center'});
+    }
+    d.setDrawColor(207,220,236);d.setLineWidth(.3);d.rect(x,y+CH,W,BH,'S');
+  };
+
+  // Página 1: datos y fotos del sitio
+  head('REPORTE DE VISITA TÉCNICA');
+  const co=r.coords;
+  const F=[
+    ['Fecha de registro',r.fecha],
+    ['Nombre del sitio',r.sitio],
+    ['Operador',r.operador],
+    ['Técnico',r.tecnico],
+    ['Dirección de llaves/custodio',r.llaves],
+    ['Contacto de seguridad NOC',r.segAI],
+    ['Inge encargado/contacto',r.ingeniero],
+    ['Coordenadas GPS',r.coords||'']
+  ];
+  F.forEach(([l,v],i)=>{
+    const x=10+(i%2)*97,y=38+Math.floor(i/2)*17;
+    d.setFillColor(...GR);d.roundedRect(x,y,93,14.5,2,2,'F');d.setFillColor(...OR);d.rect(x,y+1.8,1.2,10.9,'F');
+    d.setFont(H,'normal');d.setFontSize(7.5);d.setTextColor(95,113,134);d.text(l,x+4,y+4.8);
+    d.setFont(H,'bold');d.setFontSize(10);d.setTextColor(18,38,58);d.text(cut(v,86),x+4,y+10.8);
+  });
+  if(co){d.setFont(H,'bold');d.setFontSize(7.5);d.setTextColor(...OR);d.textWithLink('Ver en Maps',107+89,38+3*17+4.8,{url:mapUrl(co),align:'right'})}
+  d.setFillColor(...GR);d.roundedRect(10,106,190,22,2,2,'F');d.setFillColor(...OR);d.rect(10,107.8,1.2,18.4,'F');
+  d.setFont(H,'normal');d.setFontSize(7.5);d.setTextColor(95,113,134);d.text('Nota de tipo de acceso',14,110.8);
+  d.setFontSize(9);d.setTextColor(18,38,58);
+  let L=d.splitTextToSize(String(r.acceso||'Sin nota'),182);if(L.length>3){L=L.slice(0,3);L[2]=cut(L[2]+' ...',182)}
+  L.forEach((t,i)=>d.text(t,14,116.2+i*4.2));
+  sec(134,'REGISTRO FOTOGRÁFICO DEL SITIO');
+  let i=0;for(const [k,l] of IMG){await photo(10+(i%2)*97,144+Math.floor(i/2)*67.5,93,56,l,r[k]);i++}
+  foot(1);
+
+  // Página 2: actividad
+  d.addPage();head('ACTIVIDAD A REALIZAR Y EVIDENCIAS');
+  sec(38,'ACTIVIDAD A REALIZAR');
+  d.setFont(H,'normal');d.setFontSize(9.5);
+  let A=d.splitTextToSize(String(r.actividad||'Sin descripción registrada'),182);if(A.length>8){A=A.slice(0,8);A[7]=cut(A[7]+' ...',182)}
+  const ah=8+A.length*4.6;
+  d.setFillColor(...GR);d.roundedRect(10,47,190,ah,2,2,'F');d.setFillColor(...OR);d.rect(10,48.8,1.2,ah-3.6,'F');
+  d.setTextColor(18,38,58);A.forEach((t,j)=>d.text(t,14,53.2+j*4.6));
+  const ex=(r.extras||[]).filter(v=>v&&v!=='NA'),n=ex.length;
+  let y=47+ah+7;sec(y,'FOTOS DE ACTIVIDAD');y+=10;
+  const BA=n?54:80;
+  await photo(10,y,93,BA,'Fotos de Actividad 1',r.act1);await photo(107,y,93,BA,'Fotos de Actividad 2',r.act2);
+  if(n){
+    y+=CH+BA+8;sec(y,'FOTOS ADICIONALES');y+=10;
+    const rows=Math.ceil(n/2),BE=Math.min(56,Math.floor((283-y-rows*(CH+4))/rows));
+    for(let j=0;j<n;j++)await photo(10+(j%2)*97,y+Math.floor(j/2)*(CH+BE+4),93,BE,'Foto adicional '+(j+1),ex[j]);
+  }
+  foot(2);return d;
+}
+
+async function downloadPdf(r, btn){
+  btn.disabled=true;
+  const oldText=btn.textContent;
+  btn.textContent='Generando PDF…';
+  try{
+    const pdfDoc=await buildPdf(r);
+    if(pdfDoc){
+      pdfDoc.save(r.fecha.replace(/-/g,'')+'_'+(r.sitio||'sitio').replace(/[^\w\-]+/g,'_')+'.pdf');
+      toast('PDF descargado con éxito');
+    }
+  }catch(e){
+    toast('Error al generar PDF: '+(e.message||'error'));
+  }
+  btn.disabled=false;
+  btn.textContent=oldText;
+}
+
 function listH(){
   let l=mine();if(q){const t=q.toLowerCase();l=l.filter(r=>[r.sitio,r.operador,r.tecnico,r.fecha].join(' ').toLowerCase().includes(t))}
   let h=`<div class="card row"><input type="text" id="q" placeholder="Buscar sitio, operador, técnico o fecha" value="${esc(q)}" style="flex:1;min-width:200px">${adm()?'<button class="btn s" id="csv">Exportar CSV</button>':''}</div>`;
   if(!l.length)h+='<div class="empty">No hay reportes para mostrar.</div>';
   for(const r of l){
     h+=`<div class="card rec"><div><h3>${esc(r.sitio)}</h3><p>${esc(r.fecha)} · ${esc(r.operador||'Sin operador')} · Técnico: ${esc(r.tecnico||'-')}</p><p>${esc(r.acceso||'')}</p><p><b>Actividad:</b> ${esc(r.actividad||'')}</p><div class="th">${[...IMG.map(x=>r[x[0]]),r.act1,r.act2,...(r.extras||[])].filter(v=>v&&v!=='NA').map(v=>`<img src="${v}" alt="">`).join('')}</div></div>`;
-    h+=`<div class="acts"><button class="btn s" data-a="ed" data-id="${r.id}">Editar</button><button class="btn d" data-a="del" data-id="${r.id}">Eliminar</button></div>`;
+    // Botón de PDF habilitado para TODOS los usuarios (Técnicos y Administradores)
+    h+=`<div class="acts"><button class="btn" data-a="pdf" data-id="${r.id}">Descargar PDF</button><button class="btn s" data-a="ed" data-id="${r.id}">Editar</button><button class="btn d" data-a="del" data-id="${r.id}">Eliminar</button></div>`;
     h+='</div>';
   }
   return h;
@@ -426,8 +547,10 @@ function usersH(){
 }
 
 async function act(a,id,btn){
-  if(a==='ed'){const r=rows.find(x=>x.id==id);if(r)go('new',r)}
-  if(a==='del'){
+  const r=rows.find(x=>x.id==id);
+  if(a==='pdf'&&r)await downloadPdf(r, btn);
+  if(a==='ed'&&r)go('new',r);
+  if(a==='del'&&r){
     if(!await ask('¿Eliminar reporte?',{ok:'Eliminar',danger:1}))return;
     const dbData=getDB();
     Object.keys(dbData.visitas).forEach(uid=>{dbData.visitas[uid]=(dbData.visitas[uid]||[]).filter(x=>x.id!==id)});
@@ -437,7 +560,7 @@ async function act(a,id,btn){
   if(a==='reg')await regCuenta(btn);
   if(a==='rm'){
     if(!await ask('¿Eliminar esta cuenta?',{ok:'Eliminar',danger:1}))return;
-    const dbData=getDB();delete dbData.cuentas[id];delete dbData.perfiles[id];saveDB(dbData);loadData();paint();toast('Cuenta eliminada');
+    const dbData=getDB();delete dbData.cuentas[id];delete dbData.perfiles[id];saveDB(dbData);loadData();toast('Cuenta eliminada');
   }
 }
 
@@ -447,7 +570,7 @@ function setRol(id,rol){
 }
 
 const cell=v=>{v=String(v==null?'':Array.isArray(v)?v.join(' '):v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
-function csvText(){const cols=['fecha',...TXT.map(t=>t[0]),'coords','acceso','actividad'];return '\ufeff'+[cols.join(',')].concat(rows.map(r=>cols.map(c=>cell(r[c]))).join(',')).join('\n')}
+function csvText(){const cols=['fecha',...TXT.map(t=>t[0]),'coords','acceso','actividad'];return '\ufeff'+[cols.join(',')].concat(rows.map(r=>cols.map(c=>cell(r[c])).join(','))).join('\n')}
 function csv(){const blob=new Blob([csvText()],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='visitas_'+today()+'.csv';a.click()}
 
 // Arranque principal sincronizado
