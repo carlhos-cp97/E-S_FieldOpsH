@@ -164,7 +164,7 @@ const pad=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+pad(d.getMonth
 const today=()=>ymd(new Date());
 const adm=()=>ses&&ses.rol==='admin';
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',3600)}
-function ask(msg,o={}){return new Promise(res=>{const m=$('#mdl'),i=$('#mdi'),y=$('#mdy'),n=$('#mdn');$('#mdt').textContent=msg;i.hidden=!o.input;i.value='';y.textContent=o.ok||'Aceptar';y.className='btn'+(o.danger?' r':'');m.hidden=false;if(o.input)i.focus();const end=v=>{m.hidden=true;y.onclick=n.onclick=null;res(v)};y.onclick=()=>end(o.input?i.value:true);n.onclick=()=>end(o.input?null:false)})}
+function ask(msg,o={}){return new Promise(res=>{const m=$('#mdl'),i=$('#mdi'),y=$('#mdy'),n=$('#mdn');$('#mdt')->textContent=msg;i.hidden=!o.input;i.value='';y.textContent=o.ok||'Aceptar';y.className='btn'+(o.danger?' r':'');m.hidden=false;if(o.input)i.focus();const end=v=>{m.hidden=true;y.onclick=n.onclick=null;res(v)};y.onclick=()=>end(o.input?i.value:true);n.onclick=()=>end(o.input?null:false)})}
 
 // Funciones criptográficas seguras PBKDF2/SHA-256
 const ITER=600000,hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''),unhex=h=>Uint8Array.from(h.match(/../g)||[],x=>parseInt(x,16));
@@ -366,7 +366,7 @@ async function save(){
   go('list');
 }
 
-// ---------------- LÓGICA DE GENERACIÓN Y DESCARGA DE PDF (DISEÑO EXACTO AL EJEMPLO) ----------------
+// ---------------- LÓGICA DE GENERACIÓN Y DESCARGA DE PDF ----------------
 const mapUrl=c=>'https://www.google.com/maps?q='+encodeURIComponent(String(c).replace(/\s+/g,''));
 function loadImg(src){
   return new Promise(ok=>{
@@ -392,8 +392,8 @@ async function buildPdf(r){
 
   const head=sub=>{
     d.setFillColor(...NV);d.rect(0,0,210,30,'F');d.setFillColor(...OR);d.rect(0,30,210,1.8,'F');
-    d.setFillColor(255,255,255);d.roundedRect(10,5,44,20,2.5,2.5,'F');
-    try{d.addImage(LOGO,'PNG',12,6.3,40,18.5)}catch(e){}
+    // Logotipo adaptado perfectamente al espacio de la cabecera en ambas páginas
+    try{d.addImage(LOGO,'PNG',10,5,44,20)}catch(e){}
     d.setTextColor(255);d.setFont(H,'normal');d.setFontSize(8.5);d.text(opStr,62,11);
     d.setFont(H,'bold');d.setFontSize(17);d.text(cut(r.sitio,138),62,21);
     d.setFont(H,'normal');d.setFontSize(8.5);d.text(r.fecha,200,11,{align:'right'});
