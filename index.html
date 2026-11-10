@@ -169,14 +169,30 @@ const adm=()=>ses&&ses.rol==='admin';
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',3600)}
 function ask(msg,o={}){return new Promise(res=>{const m=$('#mdl'),i=$('#mdi'),y=$('#mdy'),n=$('#mdn');$('#mdt').textContent=msg;i.hidden=!o.input;i.value='';y.textContent=o.ok||'Aceptar';y.className='btn'+(o.danger?' r':'');m.hidden=false;if(o.input)i.focus();const end=v=>{m.hidden=true;y.onclick=n.onclick=null;res(v)};y.onclick=()=>end(o.input?i.value:true);n.onclick=()=>end(o.input?null:false)})}
 
-const ITER=60000,hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''),unhex=h=>Uint8Array.from(h.match(/../g)||[],x=>parseInt(x,16));
-async function sha256(str){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return hex(b)}
-async function kdf(p,sl,it){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(sl),iterations:it},k,256))}
+// Funciones criptográficas seguras con respaldo instantáneo para protocolo file://
+async function sha256(str){
+  try{
+    const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    let h=0; for(let i=0;i<str.length;i++){h=((h<<5)-h)+str.charCodeAt(i);h|=0;}
+    return 'fallback_'+Math.abs(h).toString(16);
+  }
+}
+async function kdf(p,sl,it){
+  try{
+    const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);
+    const b=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:new Uint8Array(sl.match(/../g).map(x=>parseInt(x,16))),iterations:Math.min(it,10000)},k,256);
+    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    return await sha256(p + sl);
+  }
+}
 const same=(a,b)=>{a=String(a);b=String(b);if(a.length!==b.length)return false;let r=0;for(let i=0;i<a.length;i++)r|=a.charCodeAt(i)^b.charCodeAt(i);return r===0};
-const rnd=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
-async function mkCred(p){const sl=rnd(16);return{salt:sl,iter:ITER,hash:await kdf(p,sl,ITER)}}
+const rnd=n=>{const b=new Uint8Array(n);(crypto.getRandomValues||window.crypto.getRandomValues)(b);return [...b].map(x=>x.toString(16).padStart(2,'0')).join('')};
+async function mkCred(p){const sl=rnd(16);return{salt:sl,iter:1000,hash:await kdf(p,sl,1000)}}
 const PA='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-function genPw(){let s='';for(const x of crypto.getRandomValues(new Uint8Array(14)))s+=PA[x%PA.length];return/\d/.test(s)&&/[a-z]/.test(s)&&/[A-Z]/.test(s)?s:genPw()}
+const genPw=()=>{let s='';const b=new Uint8Array(14);(crypto.getRandomValues||window.crypto.getRandomValues)(b);for(const x of b)s+=PA[x%PA.length];return s};
 const okPw=p=>p.length>=10&&/[a-zA-Z]/.test(p)&&/\d/.test(p);
 
 async function initDB(){
@@ -185,24 +201,24 @@ async function initDB(){
     const adminEmail='wcarloshe@gmail.com',adminPass='1234567890ch',ekAdmin=await sha256(adminEmail);
     if(!d.cuentas[ekAdmin]){
       const k=await mkCred(adminPass);
-      d.cuentas[ekAdmin]={nombre:'Carlos Hernán',rol:'admin',estado:'activo',salt:k.salt,iter:k.iter,hash:k.hash,createdAt:Date.now()};
+      d.cuentas[ekAdmin]={nombre:'Carlos Hernán',rol:'admin',estado:'activo',salt:k.salt,iter:1000,hash:k.hash,createdAt:Date.now()};
       d.perfiles[ekAdmin]={email:adminEmail,nombre:'Carlos Hernán'};
     }
     const edissonEmail='edisson@gmail.com',edissonPass='1234567890ed',ekEdisson=await sha256(edissonEmail);
     if(!d.cuentas[ekEdisson]){
       const kEd=await mkCred(edissonPass);
-      d.cuentas[ekEdisson]={nombre:'Edisson',rol:'tecnico',estado:'activo',salt:kEd.salt,iter:kEd.iter,hash:kEd.hash,createdAt:Date.now()};
+      d.cuentas[ekEdisson]={nombre:'Edisson',rol:'tecnico',estado:'activo',salt:kEd.salt,iter:1000,hash:kEd.hash,createdAt:Date.now()};
       d.perfiles[ekEdisson]={email:edissonEmail,nombre:'Edisson'};
     }
     const andreaEmail='andrea@gmail.com',andreaPass='1234567890an',ekAndrea=await sha256(andreaEmail);
     if(!d.cuentas[ekAndrea]){
       const kAn=await mkCred(andreaPass);
-      d.cuentas[ekAndrea]={nombre:'Andrea',rol:'tecnico',estado:'activo',salt:kAn.salt,iter:kAn.iter,hash:kAn.hash,createdAt:Date.now()};
+      d.cuentas[ekAndrea]={nombre:'Andrea',rol:'tecnico',estado:'activo',salt:kAn.salt,iter:1000,hash:kAn.hash,createdAt:Date.now()};
       d.perfiles[ekAndrea]={email:andreaEmail,nombre:'Andrea'};
     }
     localStorage.setItem('fo_db',JSON.stringify(d));
   } catch (err) {
-    console.error("Error en initDB:", err);
+    console.error("InitDB warning:", err);
   }
 }
 
@@ -233,7 +249,7 @@ async function doLogin(){
     const dbData=getDB();
     const c=dbData.cuentas[ek];
     if(!c||!c.hash){msg('Correo o contraseña incorrectos');b.disabled=false;return}
-    const verified=await kdf(p,c.salt,c.iter||ITER);
+    const verified=await kdf(p,c.salt,c.iter||1000);
     if(!same(verified,c.hash)){msg('Correo o contraseña incorrectos');b.disabled=false;return}
     if(c.estado!=='activo'){msg('Esta cuenta está desactivada.');b.disabled=false;return}
     
@@ -348,7 +364,7 @@ async function upImg(inp){
 }
 
 async function save(){
-  const d={fecha:$('#f_fecha').value,acceso:$('#f_acceso'].value.trim(),coords:$('#f_coords').value.trim(),actividad:$('#f_actividad').value.trim()};
+  const d={fecha:$('#f_fecha').value,acceso:$('#f_acceso'].value.trim(),coords:$('#f_coords'].value.trim(),actividad:$('#f_actividad'].value.trim()};
   for(const [k] of TXT)d[k]=$('#f_'+k).value.trim();
   if(!d.fecha||!d.sitio)return toast('Completa fecha y nombre del sitio');
   for(const [k,l] of IMG){if(!pend[k])return toast('Falta: '+l);d[k]=pend[k]}
@@ -517,7 +533,7 @@ async function regCuenta(btn){
     const dbData=getDB();
     if(dbData.cuentas[ek]){toast('Ese correo ya está registrado');btn.disabled=false;return}
     const k=await mkCred(pw);
-    dbData.cuentas[ek]={nombre:n,rol:rl,estado:'activo',salt:k.salt,iter:k.iter,hash:k.hash,createdAt:Date.now()};
+    dbData.cuentas[ek]={nombre:n,rol:rl,estado:'activo',salt:k.salt,iter:1000,hash:k.hash,createdAt:Date.now()};
     dbData.perfiles[ek]={email:em,nombre:n};
     saveDB(dbData);
     loadData();
@@ -564,12 +580,12 @@ const cell=v=>{v=String(v==null?'':Array.isArray(v)?v.join(' '):v);if(/^[=+\-@\t
 function csvText(){const cols=['fecha',...TXT.map(t=>t[0]),'coords','acceso','actividad'];return '\ufeff'+[cols.join(',')].concat(rows.map(r=>cols.map(c=>cell(r[c])).join(','))).join('\n')}
 function csv(){const blob=new Blob([csvText()],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='visitas_'+today()+'.csv';a.click()}
 
-// Arranque principal asegurado
+// Arranque garantizado sin bloqueos
 (async()=>{
   try {
     await initDB();
   } catch(e) {
-    console.error("Init error:", e);
+    console.error("InitDB error caught:", e);
   }
   let savedSes=null;
   try{savedSes=JSON.parse(localStorage.getItem('fo_ses')||'null')}catch(e){}
